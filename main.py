@@ -1,53 +1,33 @@
 import os
 from telegram import Update
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    MessageHandler,
-    filters,
-    ContextTypes
-)
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
-# تأكد أن اسم المتغير مطابق تماماً لما في Railway
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 
-# ━━━ Handlers ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """يرسل رسالة ترحيبية عند /start"""
-    await update.message.reply_text("🎉 البوت يعمل بنجاح! أرسل لي أي رسالة.")
+    await update.message.reply_text("✨ البوت يعمل الآن بنجاح!")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """يتعامل مع الرسائل النصية"""
-    text = update.message.text
-    await update.message.reply_text(f"📩 تلقيت: {text}")
-
-# ━━━ Main Setup ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    await update.message.reply_text(f"📩 تم استلام: {update.message.text}")
 
 def main():
-    try:
-        print("🚀 جاري تشغيل البوت...")
-        
-        # 1. بناء التطبيق مع إعدادات مضبوطة
-        app = Application.builder() \
-            .token(BOT_TOKEN) \
-            .concurrent_updates(True) \  # ← حل مشكلة Conflict
-            .build()
+    # 1. إعدادات خاصة لمنع التعارض
+    app = Application.builder() \
+        .token(BOT_TOKEN) \
+        .concurrent_updates(True) \  # ← يسمح بمعالجة متزامنة للرسائل
+        .build()
 
-        # 2. إضافة الـ Handlers
-        app.add_handler(CommandHandler("start", start))
-        app.add_handler(MessageHandler(filters.TEXT, handle_message))
+    # 2. تسجيل ال handlers
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT, handle_message))
 
-        # 3. التشغيل مع منع التكرار
-        print("✅ البوت جاهز لاستقبال الرسائل...")
-        app.run_polling(
-            allowed_updates=Update.ALL_TYPES,
-            close_loop=False,
-            drop_pending_updates=True  # ← يحذف أي تحديثات قديمة متبقية
-        )
-
-    except Exception as e:
-        print(f"❌ خطأ: {e}")
+    # 3. تشغيل البوت مع إعدادات مضبوطة
+    app.run_polling(
+        allowed_updates=Update.ALL_TYPES,
+        drop_pending_updates=True,  # ← يحذف أي تحديثات معلقة من التشغيلات السابقة
+        close_loop=False  # ← يمنع إعادة فتح الاتصال تلقائياً
+    )
 
 if __name__ == "__main__":
+    print("🚀 Starting bot...")
     main()
